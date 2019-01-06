@@ -242,6 +242,8 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
       });
     });
     WidgetsBinding.instance.ensureVisualUpdate();
+    // Allow GIF cropping (otherwise gif file will be updated on every frame)
+    _imageStream.removeListener(_updateImage);
   }
 
   _CropHandleSide _hitCropHandle(Offset localPoint) {
@@ -434,15 +436,17 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
       final dx = delta.dx / _boundaries.width;
       final dy = delta.dy / _boundaries.height;
 
+     // Area always stays in the center of the screen when user move the handle
       if (_handle == _CropHandleSide.topLeft) {
-        _updateArea(left: dx, top: dy);
+        _updateArea(left: dx, top: dy, bottom: -dy, right: -dx);
       } else if (_handle == _CropHandleSide.topRight) {
-        _updateArea(top: dy, right: dx);
+        _updateArea(top: dy, right: dx, left: -dx, bottom: -dy);
       } else if (_handle == _CropHandleSide.bottomLeft) {
-        _updateArea(left: dx, bottom: dy);
+        _updateArea(left: dx, bottom: dy, top: -dy, right: -dx);
       } else if (_handle == _CropHandleSide.bottomRight) {
-        _updateArea(right: dx, bottom: dy);
+        _updateArea(right: dx, bottom: dy, top: -dy, left: -dx);
       }
+      
     } else if (_action == _CropAction.moving) {
       final delta = _lastFocalPoint - details.focalPoint;
       _lastFocalPoint = details.focalPoint;
